@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+*.gwy
+*.pdf
+*.nhf
