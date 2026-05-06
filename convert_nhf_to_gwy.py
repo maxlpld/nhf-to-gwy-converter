@@ -25,7 +25,8 @@ What the script does:
     - Each .nhf file becomes one .gwy file containing all detected image channels.
     - Trace/forward and retrace/backward channels are kept separately in the .gwy file.
     - In the overview PDF, matching forward/backward channels are grouped side by side
-      with one common title, one common color scale, one common colorbar, and scale bars.
+      with one common title, one common color scale, one common colorbar, scale bars,
+      and a University of Basel inspired colour gradient.
     - Each folder containing .nhf files gets its own nhf_overview.pdf.
 """
 
@@ -45,6 +46,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.colors import LinearSegmentedColormap
 
 try:
     from gwyfile.objects import GwyContainer, GwyDataField, GwySIUnit
@@ -76,6 +78,21 @@ PDF_FIG_WIDTH = 16.0
 PDF_FIG_HEIGHT = 10.4
 PDF_GRID_NROWS = 2
 PDF_GRID_NCOLS = 2
+
+# University of Basel inspired colour gradient for the overview PDF previews.
+# The .gwy data export stays quantitative and unchanged; the colour map only
+# controls how the images are rendered in the generated nhf_overview.pdf.
+# If you also installed the matching Gwyddion gradient resource, select
+# "Unibas" inside Gwyddion for the same visual style there.
+UNIBAS_COLORS = [
+    (0.00, "#2D373C"),  # Unibas Anthrazit
+    (0.20, "#46505A"),  # Unibas Anthrazit hell
+    (0.45, "#A5D7D2"),  # Unibas Mint
+    (0.65, "#D2EBE9"),  # Unibas Mint hell
+    (0.82, "#FFFFFF"),  # Weiss
+    (1.00, "#D20537"),  # Unibas Rot
+]
+UNIBAS_CMAP = LinearSegmentedColormap.from_list("Unibas", UNIBAS_COLORS, N=256)
 
 
 @dataclass
@@ -725,6 +742,7 @@ def draw_channel_group_at(fig: plt.Figure, cell: Tuple[float, float, float, floa
             extent=[0.0, x_display, 0.0, y_display],
             vmin=vmin,
             vmax=vmax,
+            cmap=UNIBAS_CMAP,
             aspect="auto",
         )
 
