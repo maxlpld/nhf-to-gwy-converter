@@ -18,16 +18,6 @@ Next times:
 Optional direct path usage:
 
     python3 convert_nhf_to_gwy.py /path/to/file_or_folder
-
-What the script does:
-    - If the input is one .nhf file, it creates one .gwy file next to it.
-    - If the input is a folder, it searches recursively for all .nhf files.
-    - Each .nhf file becomes one .gwy file containing all detected image channels.
-    - Trace/forward and retrace/backward channels are kept separately in the .gwy file.
-    - In the overview PDF, matching forward/backward channels are grouped side by side
-      with one common title, one common color scale, one common colorbar, scale bars,
-      and a University of Basel inspired colour gradient.
-    - Each folder containing .nhf files gets its own nhf_overview.pdf.
 """
 
 from __future__ import annotations
@@ -50,7 +40,7 @@ from matplotlib.colors import LinearSegmentedColormap
 
 try:
     from gwyfile.objects import GwyContainer, GwyDataField, GwySIUnit
-except Exception as exc:  # handled at runtime for the user
+except Exception as exc:  
     GwyContainer = None
     GwyDataField = None
     GwySIUnit = None
@@ -67,8 +57,7 @@ OVERWRITE_EXISTING = True
 # Maximum number of channel groups shown on one PDF page.
 # A channel group can contain one image or a forward/backward pair.
 # Four groups per page gives a two-page overview for the usual NanoSurf files
-# with seven logical channels. The PDF layout below uses fixed square axes,
-# so all image panels have exactly the same size.
+# with seven logical channels.
 CHANNEL_GROUPS_PER_PDF_PAGE = 4
 
 # Fixed PDF layout. These values are in inches for the page and in normalized
@@ -80,10 +69,6 @@ PDF_GRID_NROWS = 2
 PDF_GRID_NCOLS = 2
 
 # University of Basel inspired colour gradient for the overview PDF previews.
-# The .gwy data export stays quantitative and unchanged; the colour map only
-# controls how the images are rendered in the generated nhf_overview.pdf.
-# If you also installed the matching Gwyddion gradient resource, select
-# "Unibas" inside Gwyddion for the same visual style there.
 UNIBAS_COLORS = [
     (0.00, "#2D373C"),  # Unibas Anthrazit
     (0.20, "#46505A"),  # Unibas Anthrazit hell
@@ -669,9 +654,7 @@ def draw_channel_group_at(fig: plt.Figure, cell: Tuple[float, float, float, floa
     cell_width_in = cell_width * fig_width_in
     cell_height_in = cell_height * fig_height_in
 
-    # Internal spacing in inches. These fixed values keep every channel group
-    # identical and make the image panels as large as possible inside the 2x2
-    # page layout.
+
     pad_left_in = 0.12
     pad_right_in = 0.16
     pad_bottom_in = 0.10
@@ -748,10 +731,6 @@ def draw_channel_group_at(fig: plt.Figure, cell: Tuple[float, float, float, floa
 
         subtitle = channel.direction if channel.direction != "Single" else "Image"
         ax.set_title(subtitle, fontsize=7.8, pad=2.0)
-
-        # The image axes themselves are true squares. Ticks are hidden so the
-        # visible image area stays large and identical; the physical scale is
-        # shown by the scale bar.
         ax.set_xticks([])
         ax.set_yticks([])
         add_scale_bar(ax, x_display, y_display, xy_label)
@@ -760,13 +739,7 @@ def draw_channel_group_at(fig: plt.Figure, cell: Tuple[float, float, float, floa
     cax = fig.add_axes(rect_in_to_norm(cax_left_in, image_bottom_in, cbar_width_in, square_size_in))
     if image is not None:
         cbar = fig.colorbar(image, cax=cax)
-
-        # Put the unit as a horizontal title above the colorbar. This is more
-        # robust than a vertical ylabel, which can be clipped or overlap the
-        # neighbouring channel group in the compact PDF layout.
         cbar.ax.set_title(z_label, fontsize=6.8, pad=4.0)
-
-        # Keep only the minimum and maximum labels on the colorbar.
         cbar.set_ticks([vmin, vmax])
         cbar.ax.minorticks_off()
         cbar.ax.tick_params(labelsize=6.0, pad=1.0)
@@ -784,10 +757,6 @@ def draw_overview_page(pdf: PdfPages, result: ConversionResult, page_groups: Seq
         fontsize=10.0,
         y=0.985,
     )
-
-    # Fixed 2 x 2 grid. Empty cells are intentionally left blank so the layout
-    # is identical on every page. Margins are kept tight to maximize the true
-    # square image size while still leaving room for the page title.
     left_margin = 0.022
     right_margin = 0.030
     bottom_margin = 0.032
